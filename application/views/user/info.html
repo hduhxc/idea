@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>我的个人资料</title>
+<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="/script/validation/css/validationEngine.jquery.css" rel="stylesheet" type="text/css"/>
+<link href="/script/jQuery-File-Upload/css/jquery.fileupload.css" rel="stylesheet" type="text/css" />
+<style>
+hr 
+{
+	border-style:dashed;
+	margin : 15px;
+}
+</style>
+<script type="text/javascript" src="/script/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/script/validation/js/jquery.validationEngine-zh_CN.js"></script>
+<script type="text/javascript" src="/script/validation/js/jquery.validationEngine.min.js"></script>
+<script type="text/javascript" src="/script/jquery.json-2.4.min.js"></script>
+<script type="text/javascript" src="/script/jQuery-File-Upload/js/vendor/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="/script/jQuery-File-Upload/js/jquery.fileupload.js"></script>
+<script>
+function sendMsg(data) {
+	$.post('/index.php/user/modify',data,function(json) {
+		json = eval('(' + json + ')');
+		if (json == true) {
+			$('.alert-success').fadeIn('fast');
+			setTimeout(function(){
+				$('.alert-success').fadeOut('fast');
+			},2000);
+		}
+	});
+}
+
+//这里由后端进行模板填充
+var work = eval('({work})');
+var edu = eval('({edu})');
+var proField = eval('({proField})');
+
+$(document).ready(function() {	
+	$('.alert-success').hide();	
+	$('#nav').load('/common/nav.html');
+		
+	//修改密码标签
+	$('#modpwdForm').validationEngine("attach",{ 
+		ajaxFormValidation: true,
+		scroll: false,
+    	promptPosition:"centerRight", 
+		ajaxFormValidationMethod: 'post',
+		onFieldFailure:function(field){
+			$(field).closest('div').addClass('has-error');
+		},
+		onFieldSuccess:function(field){
+			$(field).closest('div').removeClass('has-error');
+		},
+		onBeforeAjaxFormValidation:function() {
+			var str = 'password=' +  $('#newPassword').val();
+			sendMsg(str);
+		}
+	});
+	
+	//个人资料标签
+	var img = "";
+	$('#userInfoForm').submit(function(e) {
+    	e.preventDefault();
+		var formData = $('#userInfoForm').serialize();
+		if (img)
+			formData = formData + '&img=' + img;
+		sendMsg(formData);
+  	});
+	$('#fileupload').fileupload({
+		url:"/index.php/user/upload",
+		done: function(e,data) {  
+			img = eval('('+data["result"]+')');
+			$('img').attr('src',img);	
+        }
+	});
+	
+	//工作教育经历标签
+	for (var index in work) {
+		$('#workItemList').append('<p><span class="text-muted">'+work[index]+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+	}
+	for (var index in edu) {
+		$('#eduItemList').append('<p><span class="text-muted">'+edu[index]+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+	}
+	for (var index in proField) {
+		$('#proFieldItemList').append('<p><span class="text-muted">'+proField[index]+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+	}
+	$('#addWorkBtn').click(function() {
+		var str = $('input[name="work"]').val();
+		if (str) {
+			work.push(str);
+			$('#workItemList').append('<p><span class="text-muted">'+str+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+			$('input[name="work"]').val("");
+		}
+	});
+	$('#addEduBtn').click(function() {
+		var str = $('input[name="edu"]').val();
+		if (str) {
+			edu.push(str);
+			$('#eduItemList').append('<p><span class="text-muted">'+str+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+			$('input[name="edu"]').val("");
+		}
+	});
+	$('#addProFieldBtn').click(function() {
+		var str = $('input[name="proField"]').val();
+		if (str) {
+			proField.push(str);
+			$('#proFieldItemList').append('<p><span class="text-muted">'+str+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+			$('input[name="proField"]').val("");
+		}
+	});
+	$('#workItemList').on('click','a',function() {
+		var str = $(this).prev('span').html();
+		for (var value in work) {
+			if (work[value] == str) 
+				work.splice(value,1);
+		}
+		$(this).closest('p').remove();
+	});
+	$('#eduItemList').on('click','a',function() {
+		var str = $(this).prev('span').html();
+		for (var value in edu) {
+			if (edu[value] == str) 
+				edu.splice(value,1);
+		}
+		$(this).closest('p').remove();
+	});
+	$('#proFieldItemList').on('click','a',function() {
+		var str = $(this).prev('span').html();
+		for (var value in proField) {
+			if (proField[value] == str) 
+				proField.splice(value,1);
+		}
+		$(this).closest('p').remove();
+	});
+	$('#userEduForm').submit(function(e) {
+		e.preventDefault();
+		var data = 'work='+ $.toJSON(work) + '&edu=' + $.toJSON(edu) + '&proField=' + $.toJSON(proField);
+		sendMsg(data);
+	});
+});
+</script>
+</head>
+
+<body>
+
+<div id="nav"> <!--由外部文件载入--> </div>
+<div class="row">
+	<div class="col-md-8 col-md-offset-2"> 
+		<!-- Tab Navs -->
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#userInfo" data-toggle="tab">我的个人资料</a></li>
+			<li><a href="#userEdu" data-toggle="tab">工作教育经历</a></li>
+			<li><a href="#modPwd" data-toggle="tab">修改密码</a></li>
+		</ul>
+		<!-- Tab panes -->
+		<div class="tab-content"><br />
+			<div class="alert alert-success"><strong>个人资料修改成功！</strong></div>
+			<div class="tab-pane active" id="userInfo">
+				<form id="userInfoForm" class="form-horizontal" role="form">
+					<div class="form-group">
+						<label for="username" class="col-md-2 control-label">头像</label>
+						<div class="col-md-8"> 
+							<img src="{img}" /> 
+							<span class="text-muted">&nbsp;您上传的图片将被强制裁剪为40*40</span> <br /><br />
+							<p class="btn btn-primary fileinput-button">
+								<i class="glyphicon glyphicon-plus"></i>
+								<span>选择文件</span>
+    							<input id="fileupload" type="file" name="file" multiple>
+							</p>
+						</div>
+					</div>
+					<hr />
+					<div class="form-group">
+						<label for="username" class="col-md-2 control-label">称呼</label>
+						<div class="col-md-8">
+							<input type="text" class="form-control" name="username" placeholder="请输入常用昵称或真名" value="{username}">
+						</div>
+					</div>
+					<hr />
+					<div class="form-group">
+						<label for="location" class="col-md-2 control-label">居住地</label>
+						<div class="col-md-8">
+							<input type="text" class="form-control" name="location" placeholder="此地址将供您线下交流使用" value="{location}">
+						</div>
+					</div>
+					<hr />
+					<div class="form-group">
+						<label for="website" class="col-md-2 control-label">个人网站</label>
+						<div class="col-md-8">
+							<input type="text" class="form-control" name="website" placeholder="http://example.com" value="{website}">
+						</div>
+					</div>
+					<hr />
+					<div class="form-group">
+						<label for="profile" class="col-md-2 control-label">自我简介</label>
+						<div class="col-md-8">
+							<textarea class="form-control" name="profile" rows="3" >{profile}</textarea>
+						</div>
+					</div>
+					<hr />
+					<button class="btn btn-primary col-md-3 col-md-offset-2">修改</button>
+				</form>
+			</div>
+			<div class="tab-pane" id="userEdu">
+				<div class="row">
+					<div class="row"> <br />
+						<form id="userEduForm" class="form-horizontal" role="form">
+							<div class="form-group">
+								<label for="work" class="col-md-2 control-label">工作经历</label>
+								<div class="col-md-8">
+									<input type="text" class="form-control" name="work" placeholder="格式:公司或组织名称-职位头衔,如微软公司-CEO">
+									<br />
+									<div id="workItemList"><!--由js代码添加--></div>
+								</div>
+								<button id="addWorkBtn" type="button" class="btn btn-primary">添加</button>
+							</div>
+							<div class="form-group">
+								<label for="edu" class="col-md-2 control-label">教育经历</label>
+								<div class="col-md-8">
+									<input type="text" class="form-control" name="edu" placeholder="格式:学校或教育机构名称-专业方向,如杭州电子科技大学-软件工程">
+									<br />
+									<div id="eduItemList"><!--由js代码添加--></div>
+								</div>
+								<button id="addEduBtn" type="button" class="btn btn-primary">添加</button>
+							</div>
+							<div class="form-group">
+								<label for="proField" class="col-md-2 control-label">擅长领域</label>
+								<div class="col-md-8">
+									<input type="text" class="form-control" name="proField" placeholder="格式:领域名称,如WEB前端开发">
+									<br />
+									<div id="proFieldItemList"><!--由js代码添加--></div>
+								</div>
+								<button id="addProFieldBtn" type="button" class="btn btn-primary">添加</button>
+							</div>
+							<button class="btn btn-primary col-md-3 col-md-offset-2">保存</button>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane" id="modPwd">
+				<form id="modpwdForm" class="form-horizontal" role="form">
+					<div class="form-group">
+						<label for="oldpwd" class="col-md-2 control-label">原始密码</label>
+						<div class="col-md-8">
+							<input type="password" class="form-control validate[required,ajax[ajaxPwdCallPhp]]" placeholder="请输入原始密码">
+						</div>
+					</div>
+					<hr />
+					<div class="form-group">
+						<label for="newpwd" class="col-md-2 control-label">新密码</label>
+						<div class="col-md-8">
+							<input type="password" class="form-control validate[required]" id="newPassword" placeholder="请输入新密码">
+						</div>
+					</div>
+					<hr />
+					<div class="form-group">
+						<label for="cfmnewpwd" class="col-md-2 control-label">确认新密码</label>
+						<div class="col-md-8">
+							<input type="password" class="form-control validate[required,equals[newPassword]]" placeholder="请再次输入新密码">
+						</div>
+					</div>
+					<hr />
+					<button class="btn btn-primary col-md-3 col-md-offset-2">修改</button>
+				</form>
+			</div>
+		</div><!--end of tab-content--> 
+	</div><!--end of col-md-8--> 
+</div><!--end of row-->
+</body>
+</html>

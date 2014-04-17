@@ -1,0 +1,127 @@
+<style>
+#newMsgInfo 
+{
+	margin : 0;
+	padding : 0.5%;
+	text-align : center;
+	font-weight : bold;
+}
+</style>
+<script>
+function beforeLogin() {
+	$('.alert').hide();
+	$('#afterLogin').hide();
+	$('#beforeLogin').show();
+};
+function afterLogin(json) {
+	$('#beforeLogin').hide();
+	$('#afterLogin strong').html(json.username);
+	$('#afterLogin').show();
+};
+$(document).ready(function(){
+	$('#newMsgInfo').hide();
+	$.getJSON('/index.php/user/isLogin',function(json) {
+		if (json.state == true) 
+			afterLogin(json); else
+			beforeLogin(json);
+	});
+	$('#loginBtn').click(function() {
+		$('#loginModal').modal('show');
+	});
+	//一定要把事件绑定到整个afterLogin上
+	$('#afterLogin').hover(function() {
+		$('#afterLogin ul').show();
+	},function() {
+		$('#afterLogin ul').hide();
+	});
+	$('#logout').click(function() {
+		$.ajax('/index.php/user/logout');
+		beforeLogin();
+	});
+	$('#loginSubmitBtn').click(function() {
+		var formData = $('#loginForm').serialize();
+		$.post('/index.php/user/login',formData,processData);
+		function processData(data) {
+			var json = eval('('+data+')');
+			if (json.state == false) {
+				$('.alert-danger').show();
+			}
+			if (json.state == true) {
+				$('#loginModal').modal('hide');
+				afterLogin(json);
+			}
+		};
+	});
+	$('#toRegPageBtn').click(function() {
+		window.open("/index.php/user/register");
+	});
+	$('#searchForm').submit(function(e) {
+		e.preventDefault()
+		var text = 'text=' + $('#searchForm input').val();
+		window.open("/index.php/ideas/search?" + text);
+	});
+});
+</script>
+
+<!--导航条-->
+<nav class="navbar navbar-default">
+	<div class="collapse navbar-collapse"> <a class="navbar-brand" href="/index.php/ideas">Idea</a>
+		<ul class="nav navbar-nav navbar-left">
+			<li id="home"><a href="/index.php/ideas">首页</a></li>
+			<li id="ideas"><a href="/index.php/ideas/displayAll">创意库</a></li>
+		</ul>
+		<ul id="beforeLogin" class="nav navbar-nav navbar-right">
+			<li><a id="loginBtn" href="#"> <span class="glyphicon glyphicon-log-in"></span> <strong>登录</strong> </a></li>
+			<li id="regBtn"><a href="/index.php/user/register" target="_blank"> <span class="glyphicon glyphicon-user"></span> <strong>注册</strong> </a></li>
+		</ul>
+		<form id="searchForm" class="navbar-form navbar-left" role="search">
+  			<div class="form-group">
+    			<input type="text" class="form-control" placeholder="输入关键字进行搜索">
+  			</div>
+  			<button type="submit" class="btn btn-default">搜索</button>
+		</form>
+		<ul id="afterLogin" class="nav navbar-nav navbar-right">
+			<li class="dropdown"> <a href="#"><strong>Dropdown</strong><b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li><a href="/index.php/message/displayAll" target="_blank">消息盒子</a></li>
+					<li><a href="/index.php/user/modify" target="_blank">账号设置</a></li>
+					<li><a href="#" id="logout">退出</a></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<div class="slider-wrapper theme-default">
+</nav>
+
+<!-- 登录对话框 -->
+<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="loginModalLabel"><strong>登录我的Idea账号</strong></h4>
+			</div>
+			<div class="modal-body">
+				<div class="alert alert-danger"> <span class="glyphicon glyphicon-warning-sign"></span><strong>&nbsp;无效的Email和密码组合</strong> </div>
+				<form id="loginForm" class="form-horizontal" role="form">
+					<div class="form-group">
+						<label for="inputEmail" class="col-sm-2 control-label">Email</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" name="email" placeholder="请输入Email地址">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="inputPassword" class="col-sm-2 control-label">密码</label>
+						<div class="col-sm-10">
+							<input type="password" class="form-control" name="password" placeholder="请输入密码">
+						</div>
+					</div>
+				</form>
+			</div><!--end of modal-body-->
+			<div class="modal-footer">
+				<button id="loginSubmitBtn" type="button" class="btn btn-primary">登录</button>
+				<button id="toRegPageBtn" type="button" class="btn btn-default" data-dismiss="modal">注册</button>
+			</div>
+		</div><!--end of modal-content--> 
+	</div><!--end of modal-dialog--> 
+</div><!--end of modal-->

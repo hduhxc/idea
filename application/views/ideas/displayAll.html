@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>我的Idea</title>
+<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<style>
+#content
+{
+	border-top:1px solid #EEEEEE;
+	padding:10px;
+}
+#content p
+{
+	line-height:20px;
+}
+</style>
+<script type="text/javascript" src="/script/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+<script>
+$(document).ready(function() {
+	$('#nav').load("/common/nav.html",function() {
+		$('#ideas').addClass('active');
+	});
+});
+</script>
+</head>
+
+<body>
+<div id="nav"><!--由外部文件载入--></div>
+<div class="row"> 
+	<div class="col-md-8 col-md-offset-2">
+		<p><big><strong>浏览所有的Idea</strong></big></p>
+		{ideas}
+		<div id="content" class="row">
+			<div class="col-md-1">
+				<h4 class="glyphicon glyphicon-thumbs-up text-muted">{score}</h4>
+			</div>
+			<div class="col-md-11"> 
+				<a href="/index.php/ideas/detail/{ID}">
+					<h4 class="list-group-item-heading"><strong>{title}</strong></h4>
+				</a>
+				<p class="list-group-item-text">{projectBrief}</p> <p />
+				<p class="text-muted"> 
+					<span class="glyphicon glyphicon-tag">&nbsp;{projectTag}</span> 
+				</p>
+			</div>
+		</div>
+		{/ideas} 
+	</div> 
+	<div class="col-md-8 col-md-offset-2">
+		<ul class="pagination">{pageList}</ul>
+	</div>
+</div>
+</body>
+</html>

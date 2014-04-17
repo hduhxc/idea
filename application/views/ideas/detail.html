@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>创意详情</title>
+<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<style>
+#successInfo {
+	margin : 0;
+	padding : 0.5%;
+	text-align : center;
+	font-weight : bold;
+}
+</style>
+<script type="text/javascript" src="/script/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/script/raty/jquery.raty.min.js"></script>
+<script>
+$(document).ready(function()
+{
+	var id = {id};
+	$('#nav').load('/common/nav.html');
+	$('#successInfo').hide();
+	$.getJSON('/index.php/ideas/isJoin/'+id,function(data) {
+		if (data == true)
+			$('#joinBtn').hide(); else
+			$('#joinBtn').show();
+	});
+		
+	//Score
+	var score = 0;
+	$('span[id="star"]').raty({
+		hints: ['很差劲','不怎么样','一般','还不错','很棒'],
+		path:"/script/raty/img",
+		click: function(itemScore) {
+			score = score +  itemScore;
+		}
+	});
+	$('#scoreSubmitBtn').click(function () {
+		var data = 'ID='+id+'&score='+score; 
+		$.post('/index.php/ideas/submitScore',data,function() {
+			$('#successInfo').fadeIn('fast');
+			setTimeout(function(){
+				$('#successInfo').fadeOut('fast');
+			},2000);
+		});
+		$(this).hide();
+	});
+	
+	//Comment
+	$('#commentList').load('/index.php/comment/displayAll/'+ id); //注意这行需要修改
+	$('#submitComment').click(function() {
+		var str ='projectID=' + id + '&content=' + $('textarea').val();
+		$.post('/index.php/comment/add',str,
+			function(data) {
+				$('#commentList').append(data);
+				$('hr').
+				$('textarea').val("");
+			});
+	});
+	
+	//User
+	$('#joinBtn').click(function() {
+		$.getJSON('/index.php/ideas/addNewPartner/' + id,function(data) {
+			$('#joinBtn').hide();
+			$('#userList').append('<p><img src="' + data.img + '">' + data.username + '</p>');
+		});
+	});
+	
+});
+</script>
+</head>
+
+<body>
+<div id="successInfo" class="alert alert-success">评分提交成功!</div>
+<div id="nav"><!--由外部文件加载--></div>
+<div class="row">
+	<div class="col-md-8 col-md-offset-1"> 
+		
+		<!--创意综述-->
+		<ul class="nav nav-pills">
+			<li class="active"><a href="#profile" data-toggle="tab">Idea简述</a></li>
+			<li><a href="#inDetail" data-toggle="tab">Idea详述</a></li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane active" id="profile"> <p />
+				<table class="table">
+					<tbody>
+						<tr>
+							<th width="20%">Idea名称</th>
+							<td width="80%">{title}  </td>
+						</tr>
+						<tr>
+							<th width="20%">Idea简介</th>
+							<td width="80%">{projectBrief}</td>
+						</tr>
+						<tr>
+							<th width="20%">Idea标签</th>
+							<td width="80%">{projectTag}  </td>
+						</tr>
+						<tr>
+							<th width="20%">合伙人要求</th>
+							<td width="80%">{partnerBrief}  </td>
+						</tr>
+						<tr>
+							<th width="20%">合伙人标签</th>
+							<td width="80%">{partnerTag}  </td>
+						</tr>
+						<tr>
+							<th width="20%">发起时间</th>
+							<td width="80%">{date}  </td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="tab-pane" id="inDetail"> <p />
+				<div class="panel panel-default">
+					<div class="panel-body"> {inDetail} </div>
+				</div>
+			</div>
+		</div>
+		
+		<!--Score-->
+		<h4><strong>评分</strong></h4>
+		<p class="text-muted">创新程度 <span id="star" col="1"></span></p>
+		<p class="text-muted">完成度 <span id="star" col="2"></span></p>
+		<p class="text-muted">商业价值 <span id="star" col="3"></span></p>
+		<p class="text-muted">实用价值 <span id="star" col="4"></span></p>
+		<p class="text-muted">总评 <span id="star" col="5"></span></p>
+		<button id="scoreSubmitBtn" class="btn btn-default">提交</button>
+		<br />
+		<br />
+		
+		<!--Comment-->
+		<h4><strong>评论区</strong></h4>
+		<hr />
+		<ul id="commentList" class="media-list">
+		</ul>
+		<textarea class="form-control" rows="3" placeholder="您的评论"></textarea>
+		<br />
+		<button id="submitComment" class="btn btn-primary">提交评论</button>
+	</div><!--end of col-md-8-->
+	
+	<div id="userList" class="col-md-2">
+		<p><strong>他们参与了这个Idea:</strong></p>
+		{user}
+			<p><img src="{img}"> {username} </p>
+		{/user} 
+		<button id="joinBtn" class="btn btn-primary">我要参与</button>
+	</div>
+</div><!--end of row--> 
+<br />
+</body>
+</html>

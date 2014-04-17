@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<style>
+hr
+{
+	border-style:dashed;
+}
+</style>
+<script type="application/javascript" src="/script/jquery-2.0.3.min.js"></script>
+<script type="application/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+<title>消息盒子</title>
+<script>
+$(document).ready(function() {
+	$('#successInfo').hide();
+	$('#nav').load('/common/nav.html');
+	$('#writeForm').submit(function(e) {
+		e.preventDefault();
+		var data = $(this).serialize();
+		console.log(data);
+		$.post('/index.php/message/sendMsg',data,function() {
+			$('#successInfo').fadeIn('fast');
+			setTimeout(function(){
+				$('.alert-success').fadeOut('fast');
+			},2000);
+		});
+	});
+});
+</script>
+</head>
+
+<body>
+<div id="succcessInfo"></div>
+<div id="nav"></div>
+<div class="row">
+<div class="col-md-8 col-md-offset-2"> 
+	<!-- Nav tabs -->
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="#notRead" data-toggle="tab">未读消息</a></li>
+		<li><a href="#alreadyRead" data-toggle="tab">已读消息</a></li>
+		<li><a href="#write" data-toggle="tab">撰写新消息</a></li>
+	</ul>
+	<!-- Tab panes -->
+	<div class="tab-content"> <br />
+		<div class="tab-pane active" id="notRead">
+			<ul class="media-list">
+				{notRead}
+				<li class="media"> <a class="pull-left" href="#"><img src="{img}"></a>
+					<div class="media-body">
+						<p><small><strong>{username}</strong></small></p>
+						<p>{content}</p>
+						<p class="text-muted text-right"><small>{date}</small></p>
+					</div>
+				</li>
+				<hr />
+				{/notRead}
+			</ul>
+		</div>
+		<div class="tab-pane" id="alreadyRead">
+			<ul class="media-list">
+				{alreadyRead}
+				<li class="media"> <a class="pull-left" href="#"><img src="{img}"></a>
+					<div class="media-body">
+						<p><small><strong>{username}</strong></small></p>
+						<p>{content}</p>
+						<p class="text-muted text-right"><small>{date}</small></p>
+					</div>
+				</li>
+				<hr />
+				{/alreadyRead}
+			</ul>
+		</div>
+		<div class="tab-pane" id="write">
+			<div id="successInfo" class="alert alert-success"><strong>消息提交成功!</strong></div>
+			<form id="writeForm" class="form-horizontal" role="form">
+				<div class="form-group">
+					<label for="inputRevUser" class="col-sm-2 control-label">收件人</label>
+					<div class="col-md-10">
+						<input type="text" class="form-control" name="revUserEmail" placeholder="输入接收人的Email">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="inputText" class="col-sm-2 control-label">内容</label>
+					<div class="col-md-10">
+						<textarea class="form-control" rows="3" name="content"></textarea>
+					</div>
+				</div>
+				<button class="col-md-3 col-md-offset-2 btn btn-primary">提交</button>
+			</form>
+		</div>
+	</div>
+</div>
+</body>
+</html>

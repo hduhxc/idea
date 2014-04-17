@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>发布新创意</title>
+<link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
+<script src="/script/jquery-2.0.3.min.js"></script>
+<script src="/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/script/jquery.json-2.4.min.js"></script>
+<script>
+var formData = {};
+var projectTag = new Array();
+var partnerTag = new Array();
+var partner = new Array();
+
+var msgText = "诚邀您参与我的Idea";
+
+function profileHandler() {
+	formData['title'] = $('#title').val();
+	formData['projectBrief'] = $('#projectBrief').val();
+	formData['projectTag'] = $.toJSON(projectTag);
+}
+function inDetailHandler() {
+	formData['text'] = $('#editor').html();
+}
+function partnerHandler() {
+	formData['partnerBrief'] = $('#partnerBrief').val();
+	formData['partnerTag'] = $.toJSON(partnerTag);
+}
+function sendData() {
+	var data = $.param(formData);
+	$.post('/index.php/ideas/publish',data,function(data) {
+		$('#successModal').modal('show');
+		for (var value in partner) {
+			var content = msgText + '<p><a href="/index.php/ideas/detail/' + data + '">' + formData['title'] + '</a></p>';
+			var str = "revUserEmail=" + partner[value] + '&content=' + content;
+			$.post('/index.php/message/sendMsg',str);
+		}
+		setTimeout(function(){
+			$('#successModal').modal('hide');
+			window.location.assign("/index.php/ideas/detail/" + data);
+		},3000);
+	});
+};
+$(document).ready(function() {
+	//初始化
+	$('#nav').load('/common/nav.html');
+	$('#inDetail div').load('/common/editor.html');
+	$('#profile').hide();
+	$('#inDetail').hide();
+	$('#partner').hide();
+	$('#successModal').hide();
+	
+	//实现标签页的切换
+	nowItem = 'profile';
+	$('#container').html($('#'+nowItem).html());
+	
+	$('#nextBtn').click(function() {
+		if (nowItem == 'profile') {
+			nowItem = 'inDetail';  
+			profileHandler();
+		} else
+		if (nowItem == 'inDetail') {
+			nowItem = 'partner';
+			inDetailHandler();
+		} else 
+		if (nowItem == 'partner') {
+			partnerHandler();
+			sendData();
+		}
+		$('#container').html($('#'+nowItem).html());
+		if (nowItem == 'partner') 
+			$('#nextBtn').html('完成');
+	});
+	
+	//添加按钮
+	$('#addProjectTagBtn').click(function() {
+		var str = $('input[name="projectTag"]').val();
+		if (str) {
+			projectTag.push(str);
+			$('#projectTagList').append('<p><span class="text-muted">'+str+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+			$('input[name="projectTag"]').val("");
+		}
+	});
+	$('#projectTagList').on('click','a',function() {
+		var str = $(this).prev('span').html();
+		for (var value in projectTag) {
+			if (projectTag[value] == str) 
+				projectTag.splice(value,1);
+		}
+		$(this).closest('p').remove();
+	});
+		
+	//不绑定到document就无法捕获事件
+	$(document).on('click','#addPartnerTagBtn',function() {
+		var str = $('input[name="partnerTag"]').val();
+		if (str) {
+			partnerTag.push(str);
+			$('#partnerTagList').append('<p><span class="text-muted">'+str+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+			$('input[name="partnerTag"]').val("");
+		}
+	});
+	$(document).on('click','#partnerTagList a',function() {
+		var str = $(this).prev('span').html();
+		for (var value in partnerTag) {
+			if (partnerTag[value] == str) 
+				partnerTag.splice(value,1);
+		}
+		$(this).closest('p').remove();
+	});
+	
+	//添加新合伙人
+	$(document).on('focus','#partnerInput',function() {
+		$(this).unbind('keyup').keyup(function() {
+			var data = 'queryStr=' + $('#partnerInput').val();
+			$.get('/index.php/ideas/userList',data,function(data) {
+				$('#partnerInput').popover('destroy').popover({
+					html : true,
+					placement : 'bottom',
+					content : data
+				}).popover('show');
+				$('body').unbind('click').click(function() {
+					$('#partnerInput').popover('destroy');
+				});
+			});
+		});
+	});
+	$(document).on('click','#partnerList a',function() {
+		var str = $(this).children('span').html();
+		if (partner.length == 0) {
+			$('#addedPartnerList').append('<br />');
+		}
+		partner.push($(this).find('#email').html());
+		$('#addedPartnerList').append('<p><span class="text-muted">'+str+'</span>&nbsp;<a href="#" class="glyphicon glyphicon-remove"></a></p>');
+		$('#partnerInput').val('');
+		$('#partnerInput').popover('destroy');
+	});
+	$(document).on('click','#addedPartnerList a',function() {
+		var str = $(this).prev('span').children('#email').html();
+		console.log(str);
+		for (var value in partner) {
+			if (partner[value] == str) 
+				partner.splice(value,1);
+		}
+		$(this).closest('p').remove();
+		if (partner.length == 0) {
+			$('#addedPartnerList').children('br').remove();
+		}
+	});
+});
+</script>
+</head>
+<body>
+<div id="nav"><!--由外部文件加载--></div>
+<div class="row">
+	<div class="col-md-8 col-md-offset-2">
+		<div id="container"><!--容纳接下来的三部分内容--></div>
+		<button id="nextBtn" type="button" class="btn btn-primary col-md-2 col-md-offset-5">下一步</button>
+	</div>
+</div>
+
+<div id="profile">
+	<h4><strong>Step 1 / 3 : Idea 综述 </strong></h4>
+	<hr />
+	<form class="form-horizontal" role="form">
+		<div class="form-group">
+			<label for="title" class="col-sm-2 control-label">Idea标题</label>
+			<div class="col-sm-9">
+				<input type="text" class="form-control" id="title" placeholder="给Idea取一个响亮的名字">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="profile" class="col-sm-2 control-label">Idea简述</label>
+			<div class="col-sm-9">
+				<textarea id="projectBrief" class="form-control" rows="3" placeholder="用尽可能简短的语言描述你的Idea"></textarea>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="projectTag" class="col-sm-2 control-label">Idea标签</label>
+			<div class="col-sm-8">
+				<input type="text" class="form-control" name="projectTag" placeholder="用几个标签描述你的Idea">
+				<br />
+				<div id="projectTagList"> <!--由js代码添加--> </div>
+			</div>
+			<button id="addProjectTagBtn" type="button" class="btn btn-primary">添加</button>
+		</div>
+	</form>
+</div>
+<div id="inDetail">
+	<h4><strong>Step 2 / 3 : Idea 详述 </strong></h4>
+	<hr />
+	<div><!--由外部文件载入--></div>
+</div>
+<div id="partner">
+	<h4><strong>Step 3 / 3 : 寻找合伙人 </strong></h4>
+	<hr />
+	<form class="form-horizontal" role="form">
+		<div class="form-group">
+			<label for="partnerInput" class="col-sm-2 control-label">邀请用户</label>
+			<div class="col-sm-9">
+				<input type="text" class="form-control" id="partnerInput" rel="popover"  placeholder="被邀请对象的注册Email或用户名">
+				<div id="addedPartnerList"></div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="profile" class="col-sm-2 control-label">合伙人简述</label>
+			<div class="col-sm-9">
+				<textarea id="partnerBrief" class="form-control" rows="3" placeholder="你想找怎样的合伙人?"></textarea>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="partnerTag" class="col-sm-2 control-label">合伙人标签</label>
+			<div class="col-sm-8">
+				<input type="text" class="form-control" name="partnerTag" placeholder="用几个标签描述你需要的合伙人">
+				<br />
+				<div id="partnerTagList"><!--由js代码添加--> </div>
+			</div>
+			<button id="addPartnerTagBtn" type="button" class="btn btn-primary">添加</button>
+		</div>
+	</form>
+</div>
+<div id="successModal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content modal-body">
+    	<h1 class="glyphicon glyphicon-ok"></h1>
+        <strong>发布成功，3秒后将跳转至项目主页!</strong>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+</body>
+</html>

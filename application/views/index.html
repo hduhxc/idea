@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>首页</title>
+<link href="/script/nivo-slider/themes/default/default.css" rel="stylesheet" type="text/css">
+<link href="/script/nivo-slider/nivo-slider.css" rel="stylesheet" type="text/css">
+<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<style>
+#content
+{
+	border-top:1px solid #EEEEEE;
+	padding:10px;
+}
+#content p
+{
+	line-height:20px;
+}
+</style>
+<script type="text/javascript" src="/script/jquery-2.0.3.min.js"></script>
+<script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/script/nivo-slider/jquery.nivo.slider.js"></script>
+<script>
+var intervalTime = 1000;
+function fresh() {
+	setTimeout(function() {
+		sendRunMsg();
+	},intervalTime);
+}
+function sendRunMsg() {
+	$.getJSON('/index.php/message/run',function(json) {
+		if (json == false) {
+			fresh(); 
+		} 
+		if (json == true) {
+			$('#newMsgInfo').show();
+		}
+	});
+}
+$(document).ready(function() {
+	$('#nav').load('/common/nav.html',function() {
+		$('#home').addClass('active');
+	});
+	$('.nivoSlider').nivoSlider({
+		effect : 'slideInLeft',
+		pauseTime : 5000
+	});
+	sendRunMsg();
+});
+</script>
+</head>
+<body>
+<div id="newMsgInfo" class="alert alert-info">
+	您有新消息
+	<a class="close" href="#" data-dismiss="alert" aria-hidden="true">&times;</a>
+</div>
+<div id="nav"><!--由外部文件加载--></div>
+<div class="row"> 
+	<div class="col-md-8 col-md-offset-1">
+		<div class="slider-wrapper theme-default">
+			<!-- 手动添加 -->
+			<div class="nivoSlider">
+        		<a href="/index.php/ideas/detail/1">
+					<img src="/uploads/1.jpg" alt="" title="FaceBook" />
+				</a>
+				<a href="/index.php/ideas/detail/2">
+					<img src="/uploads/2.jpg" alt="" title="知乎" />
+				</a>
+    		</div>
+		</div>
+		{ideas}
+		<div id="content" class="row">
+			<div class="col-md-1">
+				<h4 class="glyphicon glyphicon-thumbs-up text-muted">{score}</h4>
+			</div>
+			<div class="col-md-11">
+				<a href="/index.php/ideas/detail/{ID}">
+    				<h4 class="list-group-item-heading"><strong>{title}</strong></h4>
+				</a>
+    			<p class="list-group-item-text">{projectBrief}</p> <p />
+				<p class="text-muted">
+					<span class="glyphicon glyphicon-tag">&nbsp;{projectTag}</span>
+				</p>
+			</div>
+		</div>
+		{/ideas}
+	</div>
+	<!--侧边栏-->
+	<div class="col-md-2">
+		<ul class="nav nav-pills nav-stacked">
+			<li>
+				<a href="/index.php/ideas/myIdea" target="_blank">
+					<span class="glyphicon glyphicon-star"></span>&nbsp;&nbsp;
+					我的创意
+				</a>
+			</li>
+			<li>
+				<a href="/index.php/ideas/publish" target="_blank">
+					<span class="glyphicon glyphicon-pushpin"></span>&nbsp;&nbsp;
+					发布新创意
+				</a>
+			</li>
+		</ul>
+	</div>
+</div>
+</body>
+</html>
