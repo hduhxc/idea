@@ -10,7 +10,7 @@
 + BootStrap
 + jQuery
 
-使用了一下插件，感谢其作者的无私奉献
+使用了以下插件，感谢其作者的无私奉献
 
 + Bootstrap-wysiwyg
 + jQuery-File-Upload
